@@ -1,0 +1,14 @@
+[general]
+
+singleton=true
+load_once=true
+symbol_prefix="godot_openvr_"
+reloadable=false
+
+[entry]
+
+Windows.64="res://addons/OpenVRCS/bin/win64/libgodot_openvr.dll"
+
+[dependencies]
+
+Windows.64=[ "res://addons/OpenVRCS/bin/win64/openvr_api.dll" ]

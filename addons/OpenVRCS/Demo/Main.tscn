@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://addons/OpenVRCS/Demo/Main.cs" type="Script" id=1]
+[ext_resource path="res://addons/OpenVRCS/Utils/Nodes/OVRToaster.cs" type="Script" id=2]
+
+[node name="Main" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="OVRToaster" type="Spatial" parent="."]
+script = ExtResource( 2 )
+MaxAlpha = 1.0
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.3 )
+fov = 60.0

@@ -1,0 +1,25 @@
+{
+  "files.exclude": {
+    ".mono": true,
+    ".vscode": true,
+    "**/.git": true,
+    "**/*.import": true,
+    "*.csproj": true,
+    "*.sln": true,
+    "*.godot": true,
+    ".editorconfig": true,
+    ".gitattributes": true,
+    "**/.gitignore": true,
+    "**/.gdignore": true,
+    "addons/OpenVRCS/bin": true,
+  },
+
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+
+  "explorer.sortOrder": "default",
+  "explorer.sortOrderLexicographicOptions": "unicode",
+
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.loggingLevel": "error",
+}

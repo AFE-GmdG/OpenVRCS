@@ -1,0 +1,10 @@
+/.vscode             export-ignore
+/External            export-ignore
+/Screenshots         export-ignore
+/.editorconfig       export-ignore
+/.gitattributes      export-ignore
+/.gitignore          export-ignore
+/README.md           export-ignore
+/project.godot       export-ignore
+/OpenVRCS.csproj     export-ignore
+/OpenVRCS.sln        export-ignore

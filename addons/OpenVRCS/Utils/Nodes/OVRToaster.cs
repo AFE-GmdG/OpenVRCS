@@ -21,6 +21,7 @@ namespace OpenVRCS.Utils.Nodes
         private Tween _toasterTween;
         private Viewport _toasterViewport;
         private OVRToasterState _toasterState;
+        private float _toasterTimeout;
         #endregion
 
         #region Exported Properties
@@ -66,6 +67,7 @@ namespace OpenVRCS.Utils.Nodes
                 PlaybackProcessMode = Tween.TweenProcessMode.Idle,
                 Name = "ToasterTween",
             };
+            _toasterTween.Connect("tween_all_completed", this, nameof(OnToasterTweenCompleted));
 
             _toasterViewport = new Viewport
             {
@@ -77,7 +79,7 @@ namespace OpenVRCS.Utils.Nodes
                 Disable3d = true,
                 Usage = Viewport.UsageEnum.Usage2dNoSampling,
                 RenderTargetVFlip = true,
-                RenderTargetUpdateMode = Viewport.UpdateMode.Always,
+                RenderTargetUpdateMode = Viewport.UpdateMode.Once,
                 RenderTargetClearMode = Viewport.ClearMode.Always,
                 GuiSnapControlsToPixels = true,
             };
@@ -182,14 +184,33 @@ namespace OpenVRCS.Utils.Nodes
             MaxAlpha = MaxAlpha;
 
             material.SetShaderParam("albedo", _toasterViewport.GetTexture());
-            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Always;
+            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Once;
             _toasterState = OVRToasterState.Hidden;
+            _toasterTimeout = 0.0f;
+        }
+
+        public override void _Process(float delta)
+        {
+            base._Process(delta);
+
+            if (_toasterTimeout > 0.0f)
+            {
+                _toasterTimeout -= delta;
+                if (_toasterTimeout <= 0.0f)
+                {
+                    _toasterTimeout = 0.0f;
+                    _toasterState = OVRToasterState.Visible;
+                    OnToasterTweenCompleted();
+                }
+            }
         }
 
         public override void _ExitTree()
         {
             if (_toasterMesh != null)
             {
+                if (_toasterTween != null)
+                    _toasterTween.Disconnect("tween_all_completed", this, nameof(OnToasterTweenCompleted));
                 if (_toasterMesh.IsInsideTree())
                 {
                     RemoveChild(_toasterMesh);
@@ -203,6 +224,30 @@ namespace OpenVRCS.Utils.Nodes
         }
         #endregion
 
+        #region Private Node specific Methods
+        private void OnToasterTweenCompleted()
+        {
+            switch(_toasterState)
+            {
+                case OVRToasterState.FadeIn:
+                    _toasterState = OVRToasterState.Visible;
+                    break;
+                case OVRToasterState.Visible:
+                    var material = _toasterMesh.GetSurfaceMaterial(0) as ShaderMaterial;
+                    _toasterState = OVRToasterState.FadeOut;
+                    _toasterTween.StopAll();
+                    if (material != null && material.Shader.HasParam("alpha"))
+                        _toasterTween.InterpolateProperty(material, "shader_param/alpha", _maxAlpha, 0.0f, 1.0f, Tween.TransitionType.Quad, Tween.EaseType.InOut, 0.0f);
+                    _toasterTween.Start();
+                    break;
+                case OVRToasterState.FadeOut:
+                    _toasterState = OVRToasterState.Hidden;
+                    _toasterMesh.Visible = false;
+                    break;
+            }
+        }
+        #endregion
+
         #region Public Node specific Methods
         public void Toast(string text, float viewDuration = 3.0f, bool useMonospaceFont = false)
         {
@@ -211,31 +256,38 @@ namespace OpenVRCS.Utils.Nodes
             if (toasterMaterial == null || !toasterMaterial.Shader.HasParam("alpha"))
                 return;
 
-            var currentAlpha = Mathf.Clamp((float)toasterMaterial.GetShaderParam("alpha"), 0.0f, 1.0f);
-            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Always;
-            _toasterMesh.Visible = true;
+            var fadeDuration = 1.0f;
+            var currentAlpha = Mathf.Clamp((float)toasterMaterial.GetShaderParam("alpha"), 0.0f, _maxAlpha);
 
+            _toasterText.Text = text;
             if (useMonospaceFont)
                 _toasterText.AddFontOverride("font", _consola32);
             else
                 _toasterText.AddFontOverride("font", _hind32);
 
+            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Once;
+            _toasterMesh.Visible = true;
 
             if (_toasterState != OVRToasterState.Visible)
             {
+                if (_maxAlpha == 0.0f)
+                    MaxAlpha = 0.01f;
+
                 _toasterTween.StopAll();
                 _toasterTween.InterpolateProperty(
                     toasterMaterial,
                     "shader_param/alpha",
                     currentAlpha,
-                    1.0f,
-                    _maxAlpha - currentAlpha,
+                    _maxAlpha,
+                    (_maxAlpha - currentAlpha) * fadeDuration / _maxAlpha,
                     Tween.TransitionType.Quad,
                     Tween.EaseType.InOut,
                     0.0f
                 );
                 _toasterTween.Start();
             }
+
+            _toasterTimeout = (_maxAlpha - currentAlpha) * fadeDuration / _maxAlpha + viewDuration;
         }
         #endregion
     }

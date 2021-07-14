@@ -77,7 +77,7 @@ namespace OpenVRCS.Utils.Nodes
                 Disable3d = true,
                 Usage = Viewport.UsageEnum.Usage2dNoSampling,
                 RenderTargetVFlip = true,
-                RenderTargetUpdateMode = Viewport.UpdateMode.Once,
+                RenderTargetUpdateMode = Viewport.UpdateMode.Always,
                 RenderTargetClearMode = Viewport.ClearMode.Always,
                 GuiSnapControlsToPixels = true,
             };
@@ -130,23 +130,18 @@ namespace OpenVRCS.Utils.Nodes
                 Name = "Icon",
             };
 
-            var margin2 = new MarginContainer
-            {
-                AnchorTop = 0,
-                AnchorRight = 1,
-                AnchorBottom = 1,
-                AnchorLeft = 0,
-                MarginTop = 12,
-                MarginRight = -12,
-                MarginBottom = -12,
-                MarginLeft = 200,
-                Name = "Margin 2",
-            };
-
             _hind32 = ResourceLoader.Load<DynamicFont>("res://addons/OpenVRCS/Utils/Fonts/Hind-32.tres");
             _consola32 = ResourceLoader.Load<DynamicFont>("res://addons/OpenVRCS/Utils/Fonts/Consola-32.tres");
             _toasterText = new Label
             {
+                AnchorTop = 0,
+                AnchorRight = 0,
+                AnchorBottom = 0,
+                AnchorLeft = 0,
+                MarginTop = 12,
+                MarginRight = 588,
+                MarginBottom = 188,
+                MarginLeft = 200,
                 Text = "This is a Toaster.\nA Toaster contains some useful text.",
                 Align = Label.AlignEnum.Left,
                 Valign = Label.VAlign.Center,
@@ -166,10 +161,9 @@ namespace OpenVRCS.Utils.Nodes
             _toasterMesh.AddChild(_toasterViewport);
             _toasterViewport.AddChild(control);
             control.AddChild(colorRect);
-            control.AddChild(margin1);
+            colorRect.AddChild(margin1);
             margin1.AddChild(icon);
-            control.AddChild(margin2);
-            margin2.AddChild(_toasterText);
+            colorRect.AddChild(_toasterText);
         }
 
         public override void _Ready()
@@ -188,7 +182,7 @@ namespace OpenVRCS.Utils.Nodes
             MaxAlpha = MaxAlpha;
 
             material.SetShaderParam("albedo", _toasterViewport.GetTexture());
-            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Once;
+            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Always;
             _toasterState = OVRToasterState.Hidden;
         }
 
@@ -218,7 +212,7 @@ namespace OpenVRCS.Utils.Nodes
                 return;
 
             var currentAlpha = Mathf.Clamp((float)toasterMaterial.GetShaderParam("alpha"), 0.0f, 1.0f);
-            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Once;
+            _toasterViewport.RenderTargetUpdateMode = Viewport.UpdateMode.Always;
             _toasterMesh.Visible = true;
 
             if (useMonospaceFont)
